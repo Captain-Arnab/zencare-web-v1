@@ -1,0 +1,72 @@
+name: zencare
+description: "Your one-stop solution for all home and lifestyle services"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+  flutter_svg:
+  carousel_slider:
+  flutter_animate: ^4.3.0
+  http:
+  pin_code_text_field: ^1.8.0
+  shared_preferences:
+  intl:
+  fluttertoast:
+  provider:
+  app_links: ^6.3.2  # Replaced uni_links with app_links
+  url_launcher:
+  webview_flutter: ^4.13.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+    image_path: "assets/img/logos.jpg"
+    background_color: "#FFFFFF"
+    theme_color: "#FF5F15"
+  image_path: "assets/img/logos.jpg"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/img/
+    - assets/img/partner/
+    - assets/img/icons/
+    - assets/img/profiles/
+    - assets/img/bg/
+    - assets/img/services/
+    - assets/about/
+    - assets/icons/
+    - assets/icons/home/
+    - assets/WomenSalon/
+    - assets/AC_Service/
+    - assets/Chimneyservice/
+    - assets/CleaningServices/
+    - assets/PestControl/
+    - assets/RefrigeratorService/
+    - assets/WashingMachine/
+    - assets/WaterPurifierService/
+    - assets/MenSalon/
+    - assets/carpentry_service/
+    - assets/img/providers/
+
+  fonts:
+    - family: Feather
+      fonts:
+        - asset: assets/fonts/Feather144f144f.ttf
