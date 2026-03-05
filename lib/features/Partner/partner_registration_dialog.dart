@@ -4,6 +4,30 @@ import 'package:http/http.dart' as http;
 import 'package:zencare/core/api_config.dart';
 import 'package:zencare/services/serviceable_areas_service.dart';
 
+void _showPartnerSuccessAlert(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Registration Submitted'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(message),
+          const SizedBox(height: 16),
+          const Text('We will contact you soon.', style: TextStyle(fontWeight: FontWeight.w600)),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
+}
+
 void showPartnerRegistrationDialog(BuildContext context) {
   showDialog(
     context: context,
@@ -39,7 +63,6 @@ class _PartnerRegistrationDialogState extends State<PartnerRegistrationDialog> {
   final city = TextEditingController();
   final district = TextEditingController();
   final state = TextEditingController();
-  final pincode = TextEditingController();
   final landmark = TextEditingController();
   final experience = TextEditingController();
   final trainingInstitute = TextEditingController();
@@ -58,6 +81,7 @@ class _PartnerRegistrationDialogState extends State<PartnerRegistrationDialog> {
   String? _selectedGender;
   String? _selectedServiceablePincode;
   String? _selectedCategory;
+  String? _serviceableAreasError;
   bool ownTools = false;
   bool purchaseKit = false;
   bool commissionAccept = false;
@@ -74,14 +98,17 @@ class _PartnerRegistrationDialogState extends State<PartnerRegistrationDialog> {
   bool backgroundVerificationConsent = false;
   bool finalConsent = false;
 
-  final _categories = [
-    'Beauty & Salon at Home',
-    'Spa & Wellness',
+  /// Primary services list for partner form (Primary Category dropdown).
+  static const List<String> partnerFormServices = [
+    'AC Service',
+    'Refrigerator Repair',
     'Home Cleaning',
-    'Plumbing',
-    'Electrical',
-    'Appliance Repair',
-    'Other',
+    'Salon',
+    'Pest Control',
+    'Washing Machine Repair',
+    'Chimney Repair',
+    'Water Purifier',
+    'Carpenter Service',
   ];
 
   @override
@@ -91,13 +118,17 @@ class _PartnerRegistrationDialogState extends State<PartnerRegistrationDialog> {
   }
 
   Future<void> _loadAreas() async {
-    setState(() => _loadingAreas = true);
-    final list = await fetchServiceableAreas();
+    setState(() {
+      _loadingAreas = true;
+      _serviceableAreasError = null;
+    });
+    final result = await fetchServiceableAreasWithError();
     if (mounted) setState(() {
-      _areas = list;
+      _areas = result.areas;
+      _serviceableAreasError = result.error;
       _loadingAreas = false;
-      if (list.isNotEmpty && _selectedServiceablePincode == null) {
-        _selectedServiceablePincode = list.first.pincode;
+      if (result.areas.isNotEmpty && _selectedServiceablePincode == null) {
+        _selectedServiceablePincode = result.areas.first.pincode;
       }
     });
   }
@@ -114,7 +145,6 @@ class _PartnerRegistrationDialogState extends State<PartnerRegistrationDialog> {
     city.dispose();
     district.dispose();
     state.dispose();
-    pincode.dispose();
     landmark.dispose();
     experience.dispose();
     trainingInstitute.dispose();
@@ -155,7 +185,7 @@ class _PartnerRegistrationDialogState extends State<PartnerRegistrationDialog> {
         'city': city.text.trim().isEmpty ? null : city.text.trim(),
         'district': district.text.trim().isEmpty ? null : district.text.trim(),
         'state': state.text.trim().isEmpty ? null : state.text.trim(),
-        'pincode': pincode.text.trim().isEmpty ? null : pincode.text.trim(),
+        'pincode': _selectedServiceablePincode,
         'landmark': landmark.text.trim().isEmpty ? null : landmark.text.trim(),
         'serviceable_areas': _selectedServiceablePincode != null ? [_selectedServiceablePincode] : null,
         'primary_category': _selectedCategory,
@@ -196,10 +226,8 @@ class _PartnerRegistrationDialogState extends State<PartnerRegistrationDialog> {
       if (!mounted) return;
       final data = json.decode(res.body);
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Partner registration submitted successfully.'), backgroundColor: Colors.green),
-        );
         Navigator.of(context).pop();
+        _showPartnerSuccessAlert(context, data['message']?.toString() ?? 'Partner registration submitted successfully.');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data['message'] ?? 'Submission failed.'), backgroundColor: Colors.red),
@@ -251,24 +279,50 @@ class _PartnerRegistrationDialogState extends State<PartnerRegistrationDialog> {
                       _textField(city, 'City'),
                       _textField(district, 'District'),
                       _textField(state, 'State'),
-                      _textField(pincode, 'Pincode'),
                       _textField(landmark, 'Landmark'),
+                      const SizedBox(height: 8),
+                      Text('Serviceable Areas (approved zones)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 4),
                       if (_loadingAreas)
-                        const Padding(padding: EdgeInsets.all(8), child: LinearProgressIndicator())
-                      else if (_areas.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        const Text('Serviceable Areas (approved zones)', style: TextStyle(fontWeight: FontWeight.w500)),
-                        const SizedBox(height: 4),
+                        const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: LinearProgressIndicator())
+                      else if (_areas.isEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.info_outline, size: 18, color: Colors.grey.shade600),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: Text(_serviceableAreasError ?? 'No serviceable areas loaded. Check connection or try again.', style: TextStyle(fontSize: 13, color: Colors.grey.shade700))),
+                                  TextButton(onPressed: _loadAreas, child: const Text('Retry')),
+                                ],
+                              ),
+                              if (_serviceableAreasError != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: Text('API: ${ApiConfig.serviceableAreas}', style: TextStyle(fontSize: 11, color: Colors.grey.shade500), overflow: TextOverflow.ellipsis),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ] else
                         DropdownButtonFormField<String>(
                           value: _selectedServiceablePincode,
-                          decoration: _inputDecoration(),
-                          items: _areas.map((a) => DropdownMenuItem(value: a.pincode, child: Text(a.label))).toList(),
+                          decoration: _inputDecoration('Select area (Name - Pincode)'),
+                          isExpanded: true,
+                          items: _areas
+                              .map((a) => DropdownMenuItem<String>(
+                                    value: a.pincode,
+                                    child: Text(a.label, overflow: TextOverflow.ellipsis),
+                                  ))
+                              .toList(),
                           onChanged: (v) => setState(() => _selectedServiceablePincode = v),
                         ),
-                      ],
                     ]),
                     _section('Service & Professional', [
-                      _dropdown('Primary Category', _selectedCategory, _categories, (v) => setState(() => _selectedCategory = v)),
+                      _dropdown('Primary Category', _selectedCategory, partnerFormServices, (v) => setState(() => _selectedCategory = v)),
                       _textField(experience, 'Years of Experience'),
                       _textField(trainingInstitute, 'Training Institute Name'),
                       _textField(previousCompany, 'Previous Company / Self-employed'),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zencare/features/auth/login_page.dart';
+import 'package:zencare/core/api_config.dart';
 import 'package:zencare/features/auth/register_page.dart';
 import 'package:zencare/features/controller.dart';
 import 'package:zencare/services/auth_service.dart';
@@ -21,6 +22,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
   final GlobalKey _servicesKey = GlobalKey();
   bool isLoggedIn = false;
   String userName = "";
+  String? userPhotoUrl;
 
   // Responsive breakpoints
   bool get isMobile => MediaQuery.of(context).size.width < 600;
@@ -92,20 +94,26 @@ class _CustomAppBarState extends State<CustomAppBar> {
                       ),
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundColor: Colors.blue.shade800,
-                            child: Text(
-                              userName.isNotEmpty
-                                  ? userName[0].toUpperCase()
-                                  : 'U',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
+                          userPhotoUrl != null && userPhotoUrl!.isNotEmpty
+                              ? CircleAvatar(
+                                  radius: 30,
+                                  backgroundImage: NetworkImage(userPhotoUrl!),
+                                  onBackgroundImageError: (_, __) {},
+                                )
+                              : CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: Colors.blue.shade800,
+                                  child: Text(
+                                    userName.isNotEmpty
+                                        ? userName[0].toUpperCase()
+                                        : 'U',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
@@ -281,6 +289,22 @@ class _CustomAppBarState extends State<CustomAppBar> {
                       },
                     ),
                     ListTile(
+                      leading: Icon(Icons.shopping_cart_outlined, color: Colors.blue.shade800),
+                      title: const Text('Cart', style: TextStyle(fontWeight: FontWeight.w600)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/shopping-cart');
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.history, color: Colors.blue.shade800),
+                      title: const Text('Order History', style: TextStyle(fontWeight: FontWeight.w600)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/order-history');
+                      },
+                    ),
+                    ListTile(
                       leading: Icon(Icons.logout, color: Colors.red.shade700),
                       title: Text(
                         'Logout',
@@ -395,9 +419,15 @@ class _CustomAppBarState extends State<CustomAppBar> {
     if (token != null && token.isNotEmpty) {
       final session = await AuthService.checkSession();
       if (session != null && mounted) {
+        final profile = session['user'] as Map<String, dynamic>? ?? await AuthService.getProfile();
+        String? photo = profile?['photo']?.toString();
+        if (photo != null && photo.isNotEmpty && !photo.startsWith('http')) {
+          photo = '${ApiConfig.baseUrlForFiles}/${photo.replaceFirst(RegExp(r'^/'), '')}';
+        }
         setState(() {
           isLoggedIn = true;
           userName = session['userName']?.toString() ?? 'Guest';
+          userPhotoUrl = photo;
         });
         return;
       }
@@ -407,6 +437,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
       setState(() {
         isLoggedIn = false;
         userName = 'Guest';
+        userPhotoUrl = null;
       });
     }
   }
@@ -765,6 +796,27 @@ class _CustomAppBarState extends State<CustomAppBar> {
     }
   }
 
+  Widget _buildProfileAvatar({required bool compact}) {
+    final radius = compact ? 16.0 : 18.0;
+    final fontSize = compact ? 14.0 : 16.0;
+    if (userPhotoUrl != null && userPhotoUrl!.isNotEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundImage: NetworkImage(userPhotoUrl!),
+        onBackgroundImageError: (_, __) {},
+        child: userName.isEmpty ? Text('?', style: TextStyle(color: Colors.white, fontSize: fontSize, fontWeight: FontWeight.w600)) : null,
+      );
+    }
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: Colors.blue.shade800,
+      child: Text(
+        userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+        style: TextStyle(color: Colors.white, fontSize: fontSize, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
   Widget _buildRightSection({required bool compact}) {
     return Padding(
       padding: EdgeInsets.only(right: compact ? 16.0 : 50.0),
@@ -896,18 +948,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircleAvatar(
-                      radius: compact ? 16 : 18,
-                      backgroundColor: Colors.blue.shade800,
-                      child: Text(
-                        userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: compact ? 14 : 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                    _buildProfileAvatar(compact: compact),
                     const SizedBox(width: 10),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -953,6 +994,38 @@ class _CustomAppBarState extends State<CustomAppBar> {
                       const SizedBox(width: 12),
                       Text(
                         'My Profile',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'cart',
+                  height: 48,
+                  child: Row(
+                    children: [
+                      Icon(Icons.shopping_cart_outlined,
+                          size: 20, color: Colors.blue.shade800),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Cart',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'order_history',
+                  height: 48,
+                  child: Row(
+                    children: [
+                      Icon(Icons.history,
+                          size: 20, color: Colors.blue.shade800),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Order History',
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w500),
                       ),
@@ -1060,6 +1133,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
                   }
                 } else if (value == 'profile') {
                   Navigator.pushNamed(context, '/profile');
+                } else if (value == 'cart') {
+                  Navigator.pushNamed(context, '/shopping-cart');
+                } else if (value == 'order_history') {
+                  Navigator.pushNamed(context, '/order-history');
                 }
               },
             ),

@@ -1,26 +1,25 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pin_code_text_field/pin_code_text_field.dart';
 import 'package:zencare/core/api_config.dart';
-import 'package:zencare/features/Home/screens/home.dart';
 import 'package:zencare/services/auth_service.dart';
 
-void showOtpDialog(BuildContext context, String phone, {String? fromPage, Map<String, dynamic>? appointmentDetails}) {
+/// Shows OTP dialog for login. [password] is optional; if provided, Resend OTP will re-request OTP via phone+password.
+void showOtpDialog(BuildContext context, String phone, {String? password, String? fromPage, Map<String, dynamic>? appointmentDetails}) {
   TextEditingController otpController = TextEditingController();
 
   showDialog(
     barrierDismissible: false,
     context: context,
-    builder: (BuildContext context) {
+    builder: (BuildContext dialogContext) {
       return AlertDialog(
         backgroundColor: Colors.white,
-        title: Text('Enter OTP', style: Theme.of(context).textTheme.titleLarge),
+        title: Text('Enter OTP', style: Theme.of(dialogContext).textTheme.titleLarge),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('A verification code has been sent to $phone'),
+            Text('A 6-digit verification code has been sent to $phone'),
             SizedBox(height: 20),
             PinCodeTextField(
               controller: otpController,
@@ -30,10 +29,10 @@ void showOtpDialog(BuildContext context, String phone, {String? fromPage, Map<St
               highlightAnimationEndColor: Colors.blue,
               pinBoxRadius: 5,
               pinBoxHeight: 50,
-              pinBoxWidth: 50,
+              pinBoxWidth: 45,
               pinBoxColor: Colors.grey.shade200,
               pinBoxBorderWidth: 0.5,
-              maxLength: 4,
+              maxLength: 6,
               hasTextBorderColor: Colors.transparent,
               autofocus: true,
             ),
@@ -41,8 +40,8 @@ void showOtpDialog(BuildContext context, String phone, {String? fromPage, Map<St
             Align(
               alignment: Alignment.bottomRight,
               child: TextButton(
-                onPressed: () => resendOtp(phone),
-                child: Text('Resend OTP', style: Theme.of(context).textTheme.bodyMedium!.copyWith(decoration: TextDecoration.underline,color: Colors.grey[600])),
+                onPressed: () => resendOtp(dialogContext, phone, password: password),
+                child: Text('Resend OTP', style: Theme.of(dialogContext).textTheme.bodyMedium!.copyWith(decoration: TextDecoration.underline, color: Colors.grey[600])),
               ),
             ),
           ],
@@ -51,22 +50,16 @@ void showOtpDialog(BuildContext context, String phone, {String? fromPage, Map<St
           Align(
             alignment: Alignment.center,
             child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.2,
-              height: 50, // Make the button take full width
+              width: MediaQuery.of(dialogContext).size.width * 0.2,
+              height: 50,
               child: ElevatedButton(
-                onPressed: () => confirmRegistration(context, phone, otpController.text, fromPage, appointmentDetails),
+                onPressed: () => confirmLoginOtp(dialogContext, phone, otpController.text),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue.shade800,
-                  padding: EdgeInsets.symmetric(
-                      vertical: 10), // Increase button height
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: Text('Verify',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge!
-                        .copyWith(color: Colors.white)),
+                child: Text('Verify', style: Theme.of(dialogContext).textTheme.bodyLarge!.copyWith(color: Colors.white)),
               ),
             ),
           ),
@@ -76,53 +69,74 @@ void showOtpDialog(BuildContext context, String phone, {String? fromPage, Map<St
   );
 }
 
-void resendOtp(String phone) {
-  // Add logic to resend OTP
-  print("Resending OTP to $phone");
+Future<void> resendOtp(BuildContext context, String phone, {String? password}) async {
+  if (password == null || password.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in again with phone and password to request a new OTP.')));
+    return;
+  }
+  try {
+    final response = await http.post(
+      Uri.parse(ApiConfig.login),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'phone': phone.trim(), 'password': password}),
+    );
+    final data = json.decode(response.body) as Map<String, dynamic>? ?? {};
+    final status = data['status']?.toString();
+    final isSuccess = (data['statusCode'] == 200 || data['statusCode'] == '200') && status == 'otp_sent';
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(data['message']?.toString() ?? (isSuccess ? 'OTP sent again.' : 'Failed to resend OTP.'))),
+    );
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Network error. Please try again.')));
+    }
+  }
 }
 
-void confirmRegistration(BuildContext context, String phone, String otp, String? fromPage, Map<String, dynamic>? appointmentDetails) async {
+/// Verify OTP and complete login. login.php returns token, user (id, first_name, last_name, email, phone, address, photo, status), expires_in_hours.
+void confirmLoginOtp(BuildContext context, String phone, String otp) async {
   final trimmedOtp = otp.trim();
-  if (trimmedOtp.isEmpty || trimmedOtp.length != 4) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid 4-digit OTP')));
+  if (trimmedOtp.isEmpty || trimmedOtp.length != 6) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid 6-digit OTP')));
     return;
   }
 
-  var headers = {'Content-Type': 'application/json'};
-  var request = http.Request('POST', Uri.parse(ApiConfig.login));
-  request.body = json.encode({
-    "action": "verify_otp",
-    "user_type": "user",
-    "phone": phone.trim(),
-    "otp": trimmedOtp,
-  });
-  request.headers.addAll(headers);
-
   try {
-    http.StreamedResponse response = await request.send();
-    String responseString = await response.stream.bytesToString();
-    final data = json.decode(responseString);
-
+    final response = await http.post(
+      Uri.parse(ApiConfig.login),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'phone': phone.trim(), 'otp': trimmedOtp}),
+    );
+    final data = json.decode(response.body) as Map<String, dynamic>? ?? {};
     final statusCode = data['statusCode'];
-    final isSuccess = statusCode == 200 || statusCode == '200';
+    final status = data['status']?.toString();
+    final isSuccess = (statusCode == 200 || statusCode == '200') && status == 'success';
 
     if (isSuccess) {
-      // login.php returns: user (ID), userName (first_name), token, message
+      // Store token from login response; same token is sent as ?token=... for check_session.php (GET)
       final token = data['token']?.toString();
-      final userId = (data['user'] ?? data['user_id'] ?? data['userId'])?.toString();
-      final userName = data['userName']?.toString() ?? '';
+      final user = data['user'];
+      String userId = '';
+      String userName = '';
+      Map<String, dynamic>? userProfile;
 
-      if (token != null && token.isNotEmpty) {
-        await AuthService.saveLogin(token: token, userId: userId ?? '', userName: userName);
-      } else {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isLoggedIn', true);
-        await prefs.setString('userId', userId ?? '');
-        await prefs.setString('userName', userName);
+      if (user is Map<String, dynamic>) {
+        userProfile = user;
+        userId = (user['id'] ?? user['ID'])?.toString() ?? '';
+        final first = user['first_name']?.toString() ?? '';
+        final last = user['last_name']?.toString() ?? '';
+        userName = '$first $last'.trim();
+        if (userName.isEmpty) userName = user['email']?.toString() ?? user['phone']?.toString() ?? 'User';
       }
+
+      if (token != null && token.trim().isNotEmpty) {
+        await AuthService.saveLogin(token: token.trim(), userId: userId, userName: userName, userProfile: userProfile);
+      }
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Login successful.'), backgroundColor: Colors.green),
+          SnackBar(content: Text(data['message']?.toString() ?? 'Login successful.'), backgroundColor: Colors.green),
         );
         Navigator.pop(context);
         Navigator.pushReplacementNamed(context, '/home');
@@ -130,18 +144,13 @@ void confirmRegistration(BuildContext context, String phone, String otp, String?
     } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(data['message'] ?? 'Invalid OTP. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(data['message']?.toString() ?? 'Invalid OTP. Please try again.'), backgroundColor: Colors.red),
         );
       }
     }
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Network error: $e'), backgroundColor: Colors.red),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Network error. Please try again.'), backgroundColor: Colors.red));
     }
   }
 }

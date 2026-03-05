@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:zencare/core/api_config.dart';
 import 'package:zencare/features/auth/login_otp_page.dart';
+import 'package:zencare/features/auth/register_page.dart';
 
 class LoginDialog extends StatefulWidget {
   @override
@@ -13,37 +14,55 @@ class LoginDialog extends StatefulWidget {
 
 class _LoginDialogState extends State<LoginDialog> {
   final TextEditingController phone = TextEditingController();
+  final TextEditingController password = TextEditingController();
 
   userLogin() async {
     final phoneNumber = phone.text.trim();
+    final passwordValue = password.text;
     if (phoneNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your mobile number')),
       );
       return;
     }
-    var headers = {'Content-Type': 'application/json'};
-    var request = http.Request('POST', Uri.parse(ApiConfig.login));
-    request.body = json.encode({
-      "action": "login",
-      "user_type": "user",
-      "phone": phoneNumber,
-    });
-    request.headers.addAll(headers);
-
-    http.StreamedResponse response = await request.send();
-    String responseString = await response.stream.bytesToString();
-    final data = json.decode(responseString);
-
-    if (!mounted) return;
-    final statusCode = data['statusCode'];
-    final isSuccess = statusCode == 200 || statusCode == '200';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(data['message'] ?? (isSuccess ? 'OTP sent.' : 'Request failed.'))),
-    );
-    if (isSuccess) {
-      Navigator.pop(context);
-      showOtpDialog(context, phoneNumber);
+    if (passwordValue.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your password')),
+      );
+      return;
+    }
+    // login.php: phone + password → send OTP; response status "otp_sent" on success
+    final body = {
+      'phone': phoneNumber,
+      'password': passwordValue,
+    };
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.login),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+      final responseString = response.body;
+      final data = json.decode(responseString) as Map<String, dynamic>? ?? {};
+      if (!mounted) return;
+      final statusCode = data['statusCode'];
+      final status = data['status']?.toString();
+      final isSuccess = (statusCode == 200 || statusCode == '200') && status == 'otp_sent';
+      String message = data['message']?.toString() ?? (isSuccess ? 'OTP sent.' : 'Request failed.');
+      // If server still expects email+password (old API), show a clear message
+      if (!isSuccess && message.toLowerCase().contains('email') && message.toLowerCase().contains('password')) {
+        message = 'Server expects phone and password for login. Please ensure the API (login.php) is updated to accept phone + password and returns OTP.';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      if (isSuccess) {
+        Navigator.pop(context);
+        showOtpDialog(context, phoneNumber, password: passwordValue);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Network error. Please try again.')),
+      );
     }
   }
 
@@ -72,6 +91,7 @@ class _LoginDialogState extends State<LoginDialog> {
               ),
               SizedBox(height: 10),
               _buildTextField(phone, "Mobile Number"),
+              _buildTextField(password, "Password", obscureText: true),
             ],
           ),
         ),
@@ -111,13 +131,16 @@ class _LoginDialogState extends State<LoginDialog> {
     );
   }
 
-  Widget signUp = Padding(
+  Widget get signUp => Padding(
     padding: const EdgeInsets.only(bottom: 10),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         InkWell(
-          onTap: () {},
+          onTap: () {
+            Navigator.pop(context);
+            showDialog(context: context, builder: (ctx) => RegisterDialog());
+          },
           child: const Text(
             "Don't have an account? Register Now!",
             style: TextStyle(

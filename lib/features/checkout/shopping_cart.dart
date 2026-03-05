@@ -65,12 +65,6 @@ class _ShoppingCartState extends State<ShoppingCart> {
     return MediaQuery.of(context).size.width < 768;
   }
 
-  // Helper method to determine if we're on tablet
-  bool _isTablet(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    return width >= 768 && width < 1024;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -273,8 +267,9 @@ void initiatePayment() async {
       'orderId': orderId,
       'amount': totalPrice.toStringAsFixed(2),
     };
-    if (_selectedServiceablePincode != null) {
-      body['pincode'] = _selectedServiceablePincode;
+    final pincode = _selectedServiceablePincode;
+    if (pincode != null) {
+      body['pincode'] = pincode;
     }
     final response = await http.post(
       Uri.parse(ApiConfig.payments),
@@ -288,43 +283,49 @@ void initiatePayment() async {
     if (response.statusCode == 200) {
       var data = json.decode(response.body);
 
-      // PhonePe directly returns state and redirectUrl
-      if (data.containsKey('state') && data.containsKey('redirectUrl')) {
-        String state = data['state'];
-        String redirectUrl = data['redirectUrl'];
-        String phonepeOrderId = data['orderId'] ?? orderId;
+      // API format: success, payment_url, transaction_id (payments.php / PhonePe v2)
+      final bool success = data['success'] == true;
+      final String? paymentUrl = data['payment_url'] ?? data['redirectUrl'];
+      final String? txnId = data['transaction_id'] ?? data['orderId'] ?? orderId;
 
-        print('PhonePe Order ID: $phonepeOrderId');
-        print('State: $state');
-        print('Redirect URL: $redirectUrl');
+      if (success && paymentUrl != null && paymentUrl.isNotEmpty) {
+        print('Transaction ID: $txnId');
+        print('Redirect URL: $paymentUrl');
         print('Amount: ₹$totalPrice');
 
-        // If state is "PENDING", redirect the user to the URL
-        if (state == "PENDING") {
-          print('Payment is pending - Redirecting to PhonePe');
+        final Uri paymentUri = Uri.parse(paymentUrl);
 
-          final Uri paymentUri = Uri.parse(redirectUrl);
+        bool launched = await launchUrl(
+          paymentUri,
+          mode: LaunchMode.externalApplication,
+        );
 
-          // Try to launch the URL
+        if (launched) {
+          print('Successfully launched payment gateway');
+          ToastMessage().toastMessage('Redirecting to payment gateway...');
+        } else {
+          print('Could not launch payment URL');
+          ToastMessage().toastMessage('Unable to open payment gateway');
+        }
+      } else if (data.containsKey('state') && data.containsKey('redirectUrl')) {
+        // Legacy: state + redirectUrl
+        String state = data['state'];
+        String redirectUrl = data['redirectUrl'];
+        if (state == 'PENDING') {
           bool launched = await launchUrl(
-            paymentUri,
+            Uri.parse(redirectUrl),
             mode: LaunchMode.externalApplication,
           );
-
           if (launched) {
-            print('Successfully launched payment gateway');
             ToastMessage().toastMessage('Redirecting to payment gateway...');
           } else {
-            print('Could not launch payment URL');
             ToastMessage().toastMessage('Unable to open payment gateway');
           }
         } else {
-          print('Payment state is not pending: $state');
           ToastMessage().toastMessage('Payment status: $state');
         }
       } else {
-        print('Unexpected response format: ${data.toString()}');
-        String errorMessage = data['message'] ?? 'Payment initialization failed';
+        String errorMessage = data['error'] ?? data['message'] ?? 'Payment initialization failed';
         ToastMessage().toastMessage(errorMessage);
       }
     } else {
@@ -686,26 +687,11 @@ void initiatePayment() async {
               _buildTextField('Last Name *'),
               _buildTextField('Address *'),
               _buildTextField('Address Line 2'),
-              _buildTextField('Postcode / ZIP *'),
+              _buildServiceableAreaField(context),
               _buildTextField('Phone *'),
               _buildTextField('Company Name'),
               _buildTextField('Email Address *'),
               _buildTextField('Additional Information', maxLines: 3),
-              if (!_loadingAreas && _serviceableAreas.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text('Serviceable Area (approved zones)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
-                const SizedBox(height: 4),
-                DropdownButtonFormField<String>(
-                  value: _selectedServiceablePincode,
-                  decoration: InputDecoration(
-                    labelText: 'Select area',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
-                  items: _serviceableAreas.map((a) => DropdownMenuItem(value: a.pincode, child: Text(a.label))).toList(),
-                  onChanged: (v) => setState(() => _selectedServiceablePincode = v),
-                ),
-              ],
             ] else ...[
               // Original layout for tablet and desktop
               Padding(
@@ -732,12 +718,7 @@ void initiatePayment() async {
                   decoration: _inputDecoration('Address Line 2'),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  decoration: _inputDecoration('Postcode / ZIP *'),
-                ),
-              ),
+              _buildServiceableAreaField(context, isDesktop: true),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
@@ -763,30 +744,56 @@ void initiatePayment() async {
                   maxLines: 3,
                 ),
               ),
-              if (!_loadingAreas && _serviceableAreas.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Serviceable Area (approved zones)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
-                      const SizedBox(height: 4),
-                      DropdownButtonFormField<String>(
-                        value: _selectedServiceablePincode,
-                        decoration: _inputDecoration('Select area'),
-                        items: _serviceableAreas.map((a) => DropdownMenuItem(value: a.pincode, child: Text(a.label))).toList(),
-                        onChanged: (v) => setState(() => _selectedServiceablePincode = v),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildServiceableAreaField(BuildContext context, {bool isDesktop = false}) {
+    final padding = isDesktop ? const EdgeInsets.all(8.0) : const EdgeInsets.only(bottom: 16.0);
+    Widget child;
+    if (_loadingAreas) {
+      child = InputDecorator(
+        decoration: _inputDecoration('Serviceable Area'),
+        child: const SizedBox(height: 20, child: LinearProgressIndicator()),
+      );
+    } else if (_serviceableAreas.isEmpty) {
+      child = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Serviceable Area (approved zones)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(Icons.info_outline, size: 18, color: Colors.grey.shade600),
+              const SizedBox(width: 8),
+              Expanded(child: Text('Could not load areas. Check connection.', style: TextStyle(fontSize: 13, color: Colors.grey.shade600))),
+              TextButton(onPressed: _loadServiceableAreas, child: const Text('Retry')),
+            ],
+          ),
+        ],
+      );
+    } else {
+      child = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Serviceable Area (approved zones)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+          const SizedBox(height: 4),
+          DropdownButtonFormField<String>(
+            value: _selectedServiceablePincode,
+            decoration: _inputDecoration('Select area (Name - Pincode)'),
+            isExpanded: true,
+            items: _serviceableAreas.map((a) => DropdownMenuItem(value: a.pincode, child: Text(a.label, overflow: TextOverflow.ellipsis))).toList(),
+            onChanged: (v) => setState(() => _selectedServiceablePincode = v),
+          ),
+        ],
+      );
+    }
+    return Padding(padding: padding, child: child);
   }
 
   // Helper widget for mobile text fields
@@ -828,115 +835,76 @@ void initiatePayment() async {
 
   void initDeepLinks() {
     _sub = _appLinks.uriLinkStream.listen((Uri? uri) {
-      if (uri != null) {
-        if (uri.host == "payment-response") {
-          final txnId = uri.queryParameters['transactionId'] ?? '';
-          final merchantId = uri.queryParameters['merchantId'] ?? '';
-          final respCode = uri.queryParameters['responseCode'] ?? '';
+      if (uri == null) return;
+      if (uri.host != "payment-response") return;
 
-          print(
-              "PhonePe Redirect: txn=$txnId, merchant=$merchantId, code=$respCode");
+      final txnId = uri.queryParameters['transactionId'] ?? uri.queryParameters['txn'] ?? '';
+      final merchantId = uri.queryParameters['merchantId'] ?? '';
+      final respCode = uri.queryParameters['responseCode'] ?? '';
 
-          //  Always call your backend to confirm final status
-          confirmPayment(txnId);
-        }
+      print("PhonePe Redirect: txn=$txnId, merchant=$merchantId, code=$respCode");
+
+      if (txnId.isEmpty) {
+        _showPaymentCancelledDialog();
+        return;
       }
+      confirmPayment(txnId);
     });
   }
 
-void _handleDeepLink(Uri uri) {
-  print('=== Deep Link Received ===');
-  print('Host: ${uri.host}');
-  print('Path: ${uri.path}');
-  print('Fragment: ${uri.fragment}');
-  print('Query Parameters: ${uri.queryParameters}');
-  print('========================');
-
-  // Handle payment-response route
-  if (uri.fragment.contains('payment-response')) {
-    // Extract query parameters from fragment
-    final fragmentUri = Uri.parse('http://dummy${uri.fragment}');
-    final txnId = fragmentUri.queryParameters['transactionId'] ?? '';
-    final merchantId = fragmentUri.queryParameters['merchantId'] ?? '';
-    final respCode = fragmentUri.queryParameters['responseCode'] ?? '';
-
-    print('Payment Response Detected:');
-    print('Transaction ID: $txnId');
-    print('Merchant ID: $merchantId');
-    print('Response Code: $respCode');
-
-    if (txnId.isNotEmpty) {
-      // Navigate to payment response page with the transaction ID
-      Navigator.pushNamed(
-        context,
-        '/payment-response',
-        arguments: {
-          'transactionId': txnId,
-          'merchantId': merchantId,
-          'responseCode': respCode,
-        },
-      );
-    } else {
-      // If no transaction ID, assume payment was cancelled
-      _showPaymentCancelledDialog();
-    }
-  }
-}
-
-void _showPaymentCancelledDialog() {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
-          children: [
-            Icon(Icons.cancel, color: Colors.orange, size: 30),
-            SizedBox(width: 10),
-            Text(
-              'Payment Cancelled',
-              style: Theme.of(context).textTheme.titleLarge,
+  void _showPaymentCancelledDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.cancel, color: Colors.orange, size: 30),
+              SizedBox(width: 10),
+              Text(
+                'Payment Cancelled',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          content: Text(
+            'Your payment was cancelled. Would you like to try again?',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/',
+                  (route) => false,
+                );
+              },
+              child: Text(
+                'Go to Home',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade800,
+              ),
+              child: Text(
+                'Try Again',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
-        ),
-        content: Text(
-          'Your payment was cancelled. Would you like to try again?',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                '/',
-                (route) => false,
-              );
-            },
-            child: Text(
-              'Go to Home',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // User can try again from the current cart page
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade800,
-            ),
-            child: Text(
-              'Try Again',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 }

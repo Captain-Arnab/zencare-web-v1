@@ -29,9 +29,9 @@ class _PaymentResponsePageState extends State<PaymentResponsePage> {
 
   Future<void> _handlePaymentResponse() async {
     try {
-      // Parse URL to get transaction ID
+      // Parse URL to get transaction ID (callback uses ?txn=; app may use transactionId)
       final uri = Uri.base;
-      final transactionId = uri.queryParameters['transactionId'];
+      final transactionId = uri.queryParameters['transactionId'] ?? uri.queryParameters['txn'] ?? uri.queryParameters['merchantTransactionId'];
       final merchantId = uri.queryParameters['merchantId'];
       
       print('=== Payment Response ===');
@@ -60,6 +60,13 @@ class _PaymentResponsePageState extends State<PaymentResponsePage> {
         _message = 'Error processing payment response';
       });
     }
+  }
+
+  /// Amount from paymentConfirmation is in paisa; display as rupees.
+  String _formatAmount(dynamic amount) {
+    if (amount == null) return '0.00';
+    final num n = amount is num ? amount : (double.tryParse(amount.toString()) ?? 0);
+    return (n / 100).toStringAsFixed(2);
   }
 
   Future<void> _verifyPaymentStatus(String transactionId) async {
@@ -207,21 +214,22 @@ class _PaymentResponsePageState extends State<PaymentResponsePage> {
           SizedBox(height: 16),
           if (_paymentData != null) ...[
             Text(
-              'Transaction ID: ${_paymentData!['merchantTransactionId'] ?? 'N/A'}',
+              'Transaction ID: ${_paymentData!['merchantTransactionId'] ?? _paymentData!['transactionId'] ?? 'N/A'}',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
               ),
             ),
             SizedBox(height: 8),
-            if (_paymentData!['amount'] != null)
+            if (_paymentData!['amount'] != null) ...[
               Text(
-                'Amount: ₹${(_paymentData!['amount'] / 100).toStringAsFixed(2)}',
+                'Amount: ₹${_formatAmount(_paymentData!['amount'])}',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
                 ),
               ),
+            ],
           ],
           SizedBox(height: 32),
           ElevatedButton(

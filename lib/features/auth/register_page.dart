@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zencare/core/api_config.dart';
-import 'package:zencare/features/auth/register_otp_dialog.dart';
+import 'package:zencare/features/auth/login_page.dart';
 
 class RegisterDialog extends StatefulWidget {
   @override
@@ -53,43 +52,24 @@ class _RegisterDialogState extends State<RegisterDialog> {
       print(' Registration Status Code: ${response.statusCode}');
       print(' Registration Response: $responseString');
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(responseString);
-
-        //  Show message only if widget is still mounted
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(data['message'] ?? 'Registration response received')),
-          );
-        }
-
-        // register.php returns statusCode 200 and status "otp_sent" when OTP is sent
         final code = data['statusCode'];
-        if ((code == 200 || code == '200') && data['status'] == 'otp_sent') {
-          final userPhone = phone.text.trim();
+        final status = data['status']?.toString();
 
-          //  Store the name BEFORE showing OTP dialog
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          String fullName = '${firstName.text.trim()} ${lastName.text.trim()}';
-          await prefs.setString('userName', fullName);
-          await prefs.setString('userEmail', email.text.trim());
-
-          print(' Success! OTP sent. User name stored: $fullName');
-          print(' Showing OTP dialog for phone: $userPhone');
-
-          //  Close register dialog first, then show OTP dialog
-          if (mounted) {
-            Navigator.pop(context);
-            showEmailOtpDialog(context, userPhone);
-          }
-        } else {
-          print('⚠️ Unexpected response: statusCode=${data['statusCode']}, status=${data['status']}');
+        // register.php returns status "success" on registration; then redirect to login
+        if ((code == 200 || code == '200') && status == 'success') {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(data['message'] ?? 'Registration failed'),
-                backgroundColor: Colors.orange,
-              ),
+              SnackBar(content: Text(data['message'] ?? 'Registration successful. You can now log in.'), backgroundColor: Colors.green),
+            );
+            Navigator.pop(context);
+            showDialog(context: context, builder: (ctx) => LoginDialog());
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(data['message'] ?? 'Registration failed'), backgroundColor: Colors.orange),
             );
           }
         }

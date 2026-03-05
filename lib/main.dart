@@ -18,8 +18,11 @@ import 'package:zencare/features/policies/privacy_policy.dart';
 import 'package:zencare/features/policies/refund_policy.dart';
 import 'package:zencare/features/policies/terms_and_conditions.dart';
 import 'package:zencare/features/Services/screens/CarpenterService.dart';
+import 'package:zencare/features/checkout/payment_callback_handler.dart';
 import 'package:zencare/features/checkout/payment_response.dart';
 import 'package:zencare/features/Partner/partner_registration_page.dart';
+import 'package:zencare/features/orders/order_history_page.dart';
+import 'package:zencare/features/profile/profile_page.dart';
 
 void main() {
   runApp(
@@ -67,7 +70,7 @@ class MyApp extends StatelessWidget {
               fontFamily: 'archivo', fontSize: 36, fontWeight: FontWeight.bold),
         ),
       ),
-      home: HomePage(),
+      home: PaymentCallbackHandler(child: HomePage()),
       routes: {
         '/home': (context) => HomePage(),
         '/about-us': (context) => AboutUs(),
@@ -87,6 +90,8 @@ class MyApp extends StatelessWidget {
         '/carpenter-service': (context) => const CarpenterService(),
         '/payment-response': (context) => const PaymentResponsePage(),
         '/partner-registration': (context) => const PartnerRegistrationPage(),
+        '/profile': (context) => const ProfilePage(),
+        '/order-history': (context) => const OrderHistoryPage(),
       },
     );
   }
