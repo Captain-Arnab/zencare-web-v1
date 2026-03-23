@@ -1,0 +1,8 @@
+{
+  "PLAY_REVIEW_PHONE": "9876543210",
+  "PLAY_REVIEW_PASSWORD": "your_review_only_password",
+  "PLAY_REVIEW_TOKEN": "paste_session_token_from_login_api_response",
+  "PLAY_REVIEW_USER_ID": "user_numeric_id",
+  "PLAY_REVIEW_USER_NAME": "Play Store reviewer",
+  "PLAY_REVIEW_OTP": ""
+}

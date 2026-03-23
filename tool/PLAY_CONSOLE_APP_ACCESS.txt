@@ -1,0 +1,19 @@
+Google Play Console → Your app → Policy → App content → App access
+(Copy below and replace ALL_CAPS placeholders.)
+
+---
+All restricted parts of the app use the same login as end users.
+
+Do not use Register. Use Login only with this test account:
+
+Mobile number: SAME_AS_PLAY_REVIEW_PHONE_IN_BUILD
+Password: SAME_AS_PLAY_REVIEW_PASSWORD_IN_BUILD
+
+After tapping Login, the Play Store build completes sign-in without SMS OTP for this account.
+
+Then you can use: home, service pages, cart, checkout, profile, order history, and partner registration (opens in WebView).
+
+If login fails, ensure you are testing the build uploaded to this listing (review-enabled build).
+---
+
+Optional: add your support email in the same form if Google asks.

@@ -11,6 +11,12 @@ import 'package:zencare/services/auth_service.dart';
 /// **Enable only for Play release builds** by passing `--dart-define` values when
 /// building the AAB/APK. Leave all unset for normal development; behavior is unchanged.
 ///
+/// **playstore-android branch (recommended workflow)**  
+/// Same app code as branch `android`; Play-only builds add defines via JSON:
+/// - Copy `playstore_dart_defines.json.example` to `playstore_dart_defines.json` (gitignored).
+/// - Fill values, run `tool/build_playstore_appbundle.ps1`, or:
+///   `flutter build appbundle --release --dart-define-from-file=playstore_dart_defines.json`
+///
 /// **1) Recommended — skip OTP after login (needs a long-lived token from your backend)**  
 /// Log in once as the test user on a dev build, copy `token`, `user id`, and name from
 /// the login API response, then build release with:
