@@ -127,10 +127,42 @@ class _PartnerRegistrationDialogState extends State<PartnerRegistrationDialog> {
       _areas = result.areas;
       _serviceableAreasError = result.error;
       _loadingAreas = false;
-      if (result.areas.isNotEmpty && _selectedServiceablePincode == null) {
-        _selectedServiceablePincode = result.areas.first.pincode;
+      if (result.areas.isNotEmpty) {
+        final uniqueByPincode = _deduplicateAreasByPincode(result.areas);
+        if (_selectedServiceablePincode == null || !uniqueByPincode.any((a) => a.pincode == _selectedServiceablePincode)) {
+          _selectedServiceablePincode = uniqueByPincode.first.pincode;
+        }
+      } else {
+        _selectedServiceablePincode = null;
       }
     });
+  }
+
+  /// Deduplicate by pincode so DropdownButton has exactly one item per value (avoids assertion).
+  List<ServiceableArea> _deduplicateAreasByPincode(List<ServiceableArea> areas) {
+    final seen = <String>{};
+    return areas.where((a) => seen.add(a.pincode)).toList();
+  }
+
+  Widget _buildServiceableAreaDropdown() {
+    final uniqueAreas = _deduplicateAreasByPincode(_areas);
+    final validValue = uniqueAreas.isEmpty
+        ? null
+        : (uniqueAreas.any((a) => a.pincode == _selectedServiceablePincode)
+            ? _selectedServiceablePincode
+            : uniqueAreas.first.pincode);
+    return DropdownButtonFormField<String>(
+      value: validValue,
+      decoration: _inputDecoration('Select area (Name - Pincode)'),
+      isExpanded: true,
+      items: uniqueAreas
+          .map((a) => DropdownMenuItem<String>(
+                value: a.pincode,
+                child: Text(a.label, overflow: TextOverflow.ellipsis),
+              ))
+          .toList(),
+      onChanged: (v) => setState(() => _selectedServiceablePincode = v),
+    );
   }
 
   @override
@@ -308,18 +340,7 @@ class _PartnerRegistrationDialogState extends State<PartnerRegistrationDialog> {
                           ),
                         ),
                       ] else
-                        DropdownButtonFormField<String>(
-                          value: _selectedServiceablePincode,
-                          decoration: _inputDecoration('Select area (Name - Pincode)'),
-                          isExpanded: true,
-                          items: _areas
-                              .map((a) => DropdownMenuItem<String>(
-                                    value: a.pincode,
-                                    child: Text(a.label, overflow: TextOverflow.ellipsis),
-                                  ))
-                              .toList(),
-                          onChanged: (v) => setState(() => _selectedServiceablePincode = v),
-                        ),
+                        _buildServiceableAreaDropdown(),
                     ]),
                     _section('Service & Professional', [
                       _dropdown('Primary Category', _selectedCategory, partnerFormServices, (v) => setState(() => _selectedCategory = v)),

@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:zencare/common/appbar.dart';
 import 'package:zencare/common/footer.dart';
+import 'package:zencare/common/zen_care_scaffold.dart';
 import 'package:zencare/core/api_config.dart';
 import 'package:zencare/services/auth_service.dart';
 
@@ -20,7 +21,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   bool _loading = true;
   String? _error;
 
-  bool get _isMobile => MediaQuery.of(context).size.width < 768;
+  bool get _isMobile =>
+      defaultTargetPlatform == TargetPlatform.android ||
+      MediaQuery.of(context).size.width < 768;
 
   @override
   void initState() {
@@ -81,9 +84,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ZenCareScaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null

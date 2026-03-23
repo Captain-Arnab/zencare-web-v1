@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:zencare/common/appbar.dart';
 import 'package:zencare/common/footer.dart';
+import 'package:zencare/common/zen_care_scaffold.dart';
 
 class TermsAndConditions extends StatelessWidget {
   const TermsAndConditions({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ZenCareScaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

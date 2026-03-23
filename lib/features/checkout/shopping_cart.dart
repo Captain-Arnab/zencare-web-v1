@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_links/app_links.dart';
 import 'package:zencare/common/Toast.dart';
-import 'package:zencare/common/appbar.dart';
 import 'package:zencare/common/footer.dart';
+import 'package:zencare/common/zen_care_scaffold.dart';
 import 'package:zencare/core/api_config.dart';
 import 'package:zencare/features/auth/login_page.dart';
 import 'package:zencare/services/auth_service.dart';
@@ -60,16 +61,16 @@ class _ShoppingCartState extends State<ShoppingCart> {
     super.dispose();
   }
 
-  // Helper method to determine if we're on mobile
+  // Helper method to determine if we're on mobile (or Android for consistent layout)
   bool _isMobile(BuildContext context) {
-    return MediaQuery.of(context).size.width < 768;
+    return defaultTargetPlatform == TargetPlatform.android ||
+        MediaQuery.of(context).size.width < 768;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ZenCareScaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(),
       body: SingleChildScrollView(
         child: Column(
           children: [

@@ -23,6 +23,7 @@ import 'package:zencare/features/checkout/payment_response.dart';
 import 'package:zencare/features/Partner/partner_registration_page.dart';
 import 'package:zencare/features/orders/order_history_page.dart';
 import 'package:zencare/features/profile/profile_page.dart';
+import 'package:zencare/features/Services/screens/services_list_page.dart';
 
 void main() {
   runApp(
@@ -73,6 +74,7 @@ class MyApp extends StatelessWidget {
       home: PaymentCallbackHandler(child: HomePage()),
       routes: {
         '/home': (context) => HomePage(),
+        '/services': (context) => const ServicesListPage(),
         '/about-us': (context) => AboutUs(),
         '/contact-us': (context) => ContactUs(),
         '/ac-services': (context) => const ACService(),

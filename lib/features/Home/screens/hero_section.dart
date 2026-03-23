@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -6,8 +7,9 @@ class HeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-    bool isMobile = screenWidth < 768;
-    bool isTablet = screenWidth >= 768 && screenWidth < 1024;
+    bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    bool isMobile = isAndroid || screenWidth < 768;
+    bool isTablet = !isAndroid && screenWidth >= 768 && screenWidth < 1024;
 
     return Container(
       width: double.infinity,

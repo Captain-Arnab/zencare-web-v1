@@ -1,8 +1,9 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:zencare/common/appbar.dart';
 import 'package:zencare/common/footer.dart';
+import 'package:zencare/common/zen_care_scaffold.dart';
 
 class AboutUs extends StatefulWidget {
   AboutUs({super.key});
@@ -14,8 +15,8 @@ class AboutUs extends StatefulWidget {
 class _AboutUsState extends State<AboutUs> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(),
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    return ZenCareScaffold(
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -25,7 +26,7 @@ class _AboutUsState extends State<AboutUs> {
             SafeArea(child: ResponsiveHowItWorks()),
             SafeArea(child: whyChooseUs(context)),
             SafeArea(child: testimonialSection(context)),
-            SafeArea(child: provideSection(context)),
+            if (!isAndroid) SafeArea(child: provideSection(context)),
             Footer()
           ],
         ),
@@ -145,8 +146,9 @@ class ResponsiveHowItWorks extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         double screenWidth = constraints.maxWidth;
-        bool isMobile = screenWidth < 600;
-        bool isTablet = screenWidth >= 600 && screenWidth < 1024;
+        bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+        bool isMobile = isAndroid || screenWidth < 600;
+        bool isTablet = !isAndroid && screenWidth >= 600 && screenWidth < 1024;
 
         return Container(
           margin: EdgeInsets.symmetric(
@@ -373,9 +375,11 @@ Widget header(BuildContext context) {
 Widget whyChooseUs(BuildContext context) {
   return LayoutBuilder(
     builder: (context, constraints) {
-      bool isMobile = constraints.maxWidth < 600;
-      bool isTablet =
-          constraints.maxWidth >= 600 && constraints.maxWidth < 1024;
+      bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+      bool isMobile = isAndroid || constraints.maxWidth < 600;
+      bool isTablet = !isAndroid &&
+          constraints.maxWidth >= 600 &&
+          constraints.maxWidth < 1024;
 
       return Padding(
         padding: EdgeInsets.symmetric(
@@ -686,9 +690,11 @@ Widget testimonialSection(BuildContext context) {
 
   return LayoutBuilder(
     builder: (context, constraints) {
-      bool isMobile = constraints.maxWidth < 600;
-      bool isTablet =
-          constraints.maxWidth >= 600 && constraints.maxWidth < 1024;
+      bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+      bool isMobile = isAndroid || constraints.maxWidth < 600;
+      bool isTablet = !isAndroid &&
+          constraints.maxWidth >= 600 &&
+          constraints.maxWidth < 1024;
 
       return Padding(
         padding: EdgeInsets.symmetric(
@@ -874,9 +880,11 @@ Widget _buildTestimonialCard(
 Widget provideSection(BuildContext context) {
   return LayoutBuilder(
     builder: (context, constraints) {
-      bool isMobile = constraints.maxWidth < 600;
-      bool isTablet =
-          constraints.maxWidth >= 600 && constraints.maxWidth < 1024;
+      bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+      bool isMobile = isAndroid || constraints.maxWidth < 600;
+      bool isTablet = !isAndroid &&
+          constraints.maxWidth >= 600 &&
+          constraints.maxWidth < 1024;
 
       return Container(
         color: Colors.black,
@@ -1143,8 +1151,9 @@ class ResponsiveAboutSection extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         double screenWidth = constraints.maxWidth;
-        bool isMobile = screenWidth < 600;
-        bool isTablet = screenWidth >= 600 && screenWidth < 1024;
+        bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+        bool isMobile = isAndroid || screenWidth < 600;
+        bool isTablet = !isAndroid && screenWidth >= 600 && screenWidth < 1024;
 
         return Padding(
           padding: EdgeInsets.symmetric(

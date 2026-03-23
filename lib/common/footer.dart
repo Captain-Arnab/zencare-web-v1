@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -7,10 +8,15 @@ import '../features/controller.dart';
 class Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // Android apps don't use web-style footers; omit footer on Android
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return const SizedBox.shrink();
+    }
+
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
-    // Responsive breakpoints
+    // Responsive breakpoints — on Android always use mobile layout
     bool isMobile = screenWidth < 600;
     bool isTablet = screenWidth >= 600 && screenWidth < 1024;
     bool isDesktop = screenWidth >= 1024;
@@ -593,8 +599,9 @@ class Footer extends StatelessWidget {
 
   Widget _buildFooterBottom(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    bool isMobile = screenWidth < 600;
-    bool isTablet = screenWidth >= 600 && screenWidth < 1024;
+    bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    bool isMobile = isAndroid || screenWidth < 600;
+    bool isTablet = !isAndroid && screenWidth >= 600 && screenWidth < 1024;
 
     return Container(
       padding: EdgeInsets.symmetric(

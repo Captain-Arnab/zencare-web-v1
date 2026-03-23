@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:zencare/features/Services/widgets/ServiceCard.dart';
 
@@ -12,8 +13,9 @@ Widget ACServiceGrid({required Function(String) onServiceTap}) {
   return LayoutBuilder(
     builder: (context, constraints) {
       final screenWidth = MediaQuery.of(context).size.width;
-      final isMobile = screenWidth < 768;
-      final isTablet = screenWidth >= 768 && screenWidth < 1024;
+      final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+      final isMobile = isAndroid || screenWidth < 768;
+      final isTablet = !isAndroid && screenWidth >= 768 && screenWidth < 1024;
 
       // Determine cross axis count based on screen size and available width
       int crossAxisCount;
