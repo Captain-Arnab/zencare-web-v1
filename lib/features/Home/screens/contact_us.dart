@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:zencare/common/appbar.dart';
 import 'package:zencare/common/footer.dart';
+import 'package:zencare/common/zen_care_scaffold.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 // ---------------------- CONTACT US ----------------------
@@ -18,9 +18,11 @@ class _ContactUsState extends State<ContactUs> {
   late double screenHeight;
 
   bool _isMobile(BuildContext context) =>
+      defaultTargetPlatform == TargetPlatform.android ||
       MediaQuery.of(context).size.width < 768;
 
   bool _isTablet(BuildContext context) {
+    if (defaultTargetPlatform == TargetPlatform.android) return false;
     double width = MediaQuery.of(context).size.width;
     return width >= 768 && width < 1024;
   }
@@ -30,8 +32,7 @@ class _ContactUsState extends State<ContactUs> {
     screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      appBar: CustomAppBar(),
+    return ZenCareScaffold(
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

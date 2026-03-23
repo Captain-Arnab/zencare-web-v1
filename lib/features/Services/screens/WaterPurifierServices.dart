@@ -1,7 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zencare/common/appbar.dart';
 import 'package:zencare/common/footer.dart';
+import 'package:zencare/common/zen_care_scaffold.dart';
 import 'package:zencare/features/Services/widgets/Packages.dart';
 import 'package:zencare/features/Services/widgets/WaterPurifierServicesGrid.dart';
 import 'package:zencare/features/controller.dart';
@@ -44,9 +45,10 @@ class _WaterPurifierServiceState extends State<WaterPurifierService> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth >= 768 && screenWidth < 1024;
-    final isDesktop = screenWidth >= 1024;
-    final isMobile = screenWidth < 768;
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    final isMobile = isAndroid || screenWidth < 768;
+    final isTablet = !isAndroid && screenWidth >= 768 && screenWidth < 1024;
+    final isDesktop = !isAndroid && screenWidth >= 1024;
 
     List<ExpansionTileData> waterPurifierService = [
       ExpansionTileData(
@@ -210,8 +212,7 @@ class _WaterPurifierServiceState extends State<WaterPurifierService> {
               '3. Repair of wall damage from previous installation.'),
     ];
 
-    return Scaffold(
-      appBar: CustomAppBar(),
+    return ZenCareScaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [

@@ -1,9 +1,10 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zencare/common/appbar.dart';
 import 'package:zencare/common/footer.dart';
+import 'package:zencare/common/zen_care_scaffold.dart';
 import 'package:zencare/features/Home/screens/hero_section.dart';
 import 'package:zencare/features/Home/screens/works.dart';
 import 'package:zencare/features/Partner/partner_registration_dialog.dart';
@@ -19,43 +20,30 @@ class _HomePageState extends State<HomePage> {
   late double screenWidth;
   late double screenHeight;
 
-  // Helper method to determine device type
-  bool get isMobile => screenWidth < 768;
-  bool get isTablet => screenWidth >= 768 && screenWidth < 1024;
-  bool get isDesktop => screenWidth >= 1024;
+  // Helper method to determine device type — on Android always use mobile layout
+  bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
+  bool get isMobile => _isAndroid || screenWidth < 768;
+  bool get isTablet => !_isAndroid && screenWidth >= 768 && screenWidth < 1024;
+  bool get isDesktop => !_isAndroid && screenWidth >= 1024;
 
   @override
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      appBar: CustomAppBar(),
+    return ZenCareScaffold(
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SafeArea(
-              child: HeroSection(),
-            ),
-            SafeArea(
-              child: ZenCareWorks(),
-            ),
-            SafeArea(
-              child: partnersection(context),
-            ),
-            SafeArea(
-              child: whyChooseUs(context),
-            ),
-            SafeArea(
-              child: testimonialSection(context),
-            ),
-            // SafeArea(
-            //   child: clients(),
-            // ),
-            SafeArea(
-              child: provideSection(context),
-            ),
+            SafeArea(child: HeroSection()),
+            SafeArea(child: ZenCareWorks()),
+            SafeArea(child: partnersection(context)),
+            if (!_isAndroid) ...[
+              SafeArea(child: whyChooseUs(context)),
+              SafeArea(child: testimonialSection(context)),
+            ],
+            if (!_isAndroid) SafeArea(child: provideSection(context)),
             Footer()
           ],
         ),

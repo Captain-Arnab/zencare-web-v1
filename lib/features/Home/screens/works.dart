@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -7,10 +8,11 @@ class ZenCareWorks extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
-    // Determine if it's mobile, tablet, or desktop
-    bool isMobile = screenWidth < 600;
-    bool isTablet = screenWidth >= 600 && screenWidth < 1024;
-    bool isDesktop = screenWidth >= 1024;
+    // Determine if it's mobile, tablet, or desktop — on Android always use mobile layout
+    bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    bool isMobile = isAndroid || screenWidth < 600;
+    bool isTablet = !isAndroid && screenWidth >= 600 && screenWidth < 1024;
+    bool isDesktop = !isAndroid && screenWidth >= 1024;
 
     return Column(
       children: [

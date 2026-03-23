@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ServiceCard extends StatefulWidget {
@@ -16,8 +17,9 @@ class _ServiceCardState extends State<ServiceCard> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 768;
-    final isTablet = screenWidth >= 768 && screenWidth < 1024;
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    final isMobile = isAndroid || screenWidth < 768;
+    final isTablet = !isAndroid && screenWidth >= 768 && screenWidth < 1024;
 
     // Responsive sizing
     double imageWidth = isMobile ? 80 : isTablet ? 90 : 100;

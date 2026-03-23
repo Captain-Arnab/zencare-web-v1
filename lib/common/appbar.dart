@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,13 +9,19 @@ import 'package:zencare/features/controller.dart';
 import 'package:zencare/services/auth_service.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
-  const CustomAppBar({super.key});
+  const CustomAppBar({super.key, this.hasDrawer = false, this.hideMenuButton = false});
+
+  /// When true (Android with ZenCareScaffold), AppBar uses Scaffold's drawer icon as leading and does not show a menu button in the title.
+  final bool hasDrawer;
+  /// When true (Android app with bottom nav), do not show hamburger/menu button — navigation is via bottom bar only.
+  final bool hideMenuButton;
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
 
   @override
-  Size get preferredSize => const Size.fromHeight(80);
+  Size get preferredSize => Size.fromHeight(
+      defaultTargetPlatform == TargetPlatform.android ? 56.0 : 80.0);
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
@@ -24,12 +31,16 @@ class _CustomAppBarState extends State<CustomAppBar> {
   String userName = "";
   String? userPhotoUrl;
 
-  // Responsive breakpoints
-  bool get isMobile => MediaQuery.of(context).size.width < 600;
+  // Responsive breakpoints — on Android always use mobile layout
+  bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
+  bool get isMobile =>
+      _isAndroid || MediaQuery.of(context).size.width < 600;
   bool get isTablet =>
+      !_isAndroid &&
       MediaQuery.of(context).size.width >= 600 &&
       MediaQuery.of(context).size.width < 1024;
-  bool get isDesktop => MediaQuery.of(context).size.width >= 1024;
+  bool get isDesktop =>
+      !_isAndroid && MediaQuery.of(context).size.width >= 1024;
 
   void _showMenu(GlobalKey key, List<PopupMenuEntry<String>> items) {
     final RenderBox renderBox =
@@ -447,9 +458,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
     return AppBar(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.white,
-      elevation: 0,
+      elevation: _isAndroid ? 2 : 0,
+      scrolledUnderElevation: _isAndroid ? 4 : 0,
       titleSpacing: 0,
-      automaticallyImplyLeading: false,
+      automaticallyImplyLeading: widget.hasDrawer,
       title: Padding(
         padding: EdgeInsets.only(
           top: 10.0,
@@ -462,7 +474,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
   }
 
   Widget _buildResponsiveAppBar() {
-    if (isMobile) {
+    // On Android always use compact mobile-style app bar
+    if (_isAndroid || isMobile) {
       return _buildMobileAppBar();
     } else if (isTablet) {
       return _buildTabletAppBar();
@@ -482,7 +495,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
           },
           child: Image.asset(
             'assets/img/logos.jpg',
-            height: 70,
+            height: _isAndroid ? 40 : 70,
           ),
         ),
         const Spacer(),
@@ -502,11 +515,12 @@ class _CustomAppBarState extends State<CustomAppBar> {
           },
         ),
 
-        // Menu Button
-        IconButton(
-          icon: const Icon(Icons.menu, size: 24),
-          onPressed: _showMobileDrawer,
-        ),
+        // Menu Button: hide on Android (bottom nav only); hide when drawer is used (Scaffold shows drawer icon as leading)
+        if (!widget.hasDrawer && !widget.hideMenuButton)
+          IconButton(
+            icon: const Icon(Icons.menu, size: 24),
+            onPressed: _showMobileDrawer,
+          ),
       ],
     );
   }
