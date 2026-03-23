@@ -76,14 +76,14 @@ class HowItWorks extends StatelessWidget {
                   const SizedBox(height: 20.0),
                   // Background Image 1
                   SvgPicture.asset(
-                    'assets/bg/work-bg-01.svg',
+                    'assets/img/bg/work-bg-01.svg',
                     fit: BoxFit.cover,
                     height: 20.0,
                   ),
                   const SizedBox(height: 20.0),
                   // Background Image 2
                   SvgPicture.asset(
-                    'assets/bg/work-bg-02.svg',
+                    'assets/img/bg/work-bg-02.svg',
                     fit: BoxFit.cover,
                     height: 20.0,
                   ),

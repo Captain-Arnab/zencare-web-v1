@@ -530,7 +530,7 @@ class _HomePageState extends State<HomePage> {
                 // Add your Google Play URL here
               },
               child: SvgPicture.asset(
-                'assets/img/icons/goolge-play.svg',
+                'assets/img/icons/google-play.svg',
                 height: isMobile ? 35 : 40,
                 width: isMobile ? 100 : 120,
               ),

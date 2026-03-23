@@ -50,7 +50,7 @@ class _ContactUsState extends State<ContactUs> {
       width: double.infinity,
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: const AssetImage('assets/images/contact_banner.jpg'),
+          image: const AssetImage('assets/img/banner.png'),
           fit: BoxFit.cover,
           colorFilter:
               ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.darken),
@@ -76,14 +76,14 @@ class _ContactUsState extends State<ContactUs> {
                 ? Column(
                     children: [
                       contactInfoBox(
-                        'assets/icons/icon9.png',
+                        Icons.location_on_rounded,
                         'Address',
                         'No 4,Near by RTO Office, YSR Nagar,\nDhone, Andhra Pradesh, India - 518222',
                         width: screenWidth * 0.9,
                       ),
                       const SizedBox(height: 20),
                       contactInfoBox(
-                        'assets/icons/icon10.png',
+                        Icons.email_outlined,
                         'Mail',
                         'Zencareservices@gmail.com',
                         link: 'mailto:zencareservices@gmail.com',
@@ -91,7 +91,7 @@ class _ContactUsState extends State<ContactUs> {
                       ),
                       const SizedBox(height: 20),
                       contactInfoBox(
-                        'assets/icons/icon11.png',
+                        Icons.phone_in_talk_rounded,
                         'Phone Number',
                         '8179550262',
                         link: 'tel:8179550262',
@@ -105,7 +105,7 @@ class _ContactUsState extends State<ContactUs> {
                     children: [
                       Expanded(
                         child: contactInfoBox(
-                          'assets/icons/icon9.png',
+                          Icons.location_on_rounded,
                           'Address',
                           'No 4,Near by RTO Office, YSR Nagar,\nDhone, Andhra Pradesh, India - 518222',
                         ),
@@ -113,7 +113,7 @@ class _ContactUsState extends State<ContactUs> {
                       const SizedBox(width: 20),
                       Expanded(
                         child: contactInfoBox(
-                          'assets/icons/icon10.png',
+                          Icons.email_outlined,
                           'Mail',
                           'Zencareservices@gmail.com',
                           link: 'mailto:zencareservices@gmail.com',
@@ -122,7 +122,7 @@ class _ContactUsState extends State<ContactUs> {
                       const SizedBox(width: 20),
                       Expanded(
                         child: contactInfoBox(
-                          'assets/icons/icon11.png',
+                          Icons.phone_in_talk_rounded,
                           'Phone Number',
                           '8179550262',
                           link: 'tel:8179550262',
@@ -244,7 +244,7 @@ class _IframeWidgetState extends State<IframeWidget> {
 
 // ---------------------- CONTACT INFO BOX ----------------------
 Widget contactInfoBox(
-  String iconPath,
+  IconData icon,
   String title,
   String subtitle, {
   bool isLink = false,
@@ -275,7 +275,7 @@ Widget contactInfoBox(
         ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(iconPath, height: 40, width: 40),
+              Icon(icon, size: 40, color: Colors.green.shade700),
               const SizedBox(height: 12),
               Text(
                 title,
@@ -303,7 +303,7 @@ Widget contactInfoBox(
             children: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Image.asset(iconPath, height: 50, width: 50),
+                child: Icon(icon, size: 50, color: Colors.green.shade700),
               ),
               const SizedBox(width: 10.0),
               Expanded(

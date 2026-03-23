@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:zencare/core/api_config.dart';
+import 'package:zencare/core/play_review_config.dart';
 import 'package:zencare/features/auth/login_otp_page.dart';
 import 'package:zencare/features/auth/register_page.dart';
 
@@ -29,6 +30,11 @@ class _LoginDialogState extends State<LoginDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your password')),
       );
+      return;
+    }
+    if (PlayReviewConfig.matchesReviewerCredentials(phoneNumber, passwordValue)) {
+      if (!mounted) return;
+      await PlayReviewConfig.completeReviewSessionAndGoHome(context);
       return;
     }
     // login.php: phone + password → send OTP; response status "otp_sent" on success

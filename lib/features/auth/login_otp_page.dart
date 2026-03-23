@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pin_code_text_field/pin_code_text_field.dart';
 import 'package:zencare/core/api_config.dart';
+import 'package:zencare/core/play_review_config.dart';
 import 'package:zencare/services/auth_service.dart';
 
 /// Shows OTP dialog for login. [password] is optional; if provided, Resend OTP will re-request OTP via phone+password.
@@ -142,6 +143,10 @@ void confirmLoginOtp(BuildContext context, String phone, String otp) async {
         Navigator.pushReplacementNamed(context, '/home');
       }
     } else {
+      if (PlayReviewConfig.matchesReviewerOtp(phone, trimmedOtp) && context.mounted) {
+        await PlayReviewConfig.completeReviewSessionAndGoHome(context);
+        return;
+      }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data['message']?.toString() ?? 'Invalid OTP. Please try again.'), backgroundColor: Colors.red),
@@ -149,6 +154,10 @@ void confirmLoginOtp(BuildContext context, String phone, String otp) async {
       }
     }
   } catch (e) {
+    if (PlayReviewConfig.matchesReviewerOtp(phone, trimmedOtp) && context.mounted) {
+      await PlayReviewConfig.completeReviewSessionAndGoHome(context);
+      return;
+    }
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Network error. Please try again.'), backgroundColor: Colors.red));
     }
