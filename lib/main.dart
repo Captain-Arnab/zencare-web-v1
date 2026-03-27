@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 import 'package:provider/provider.dart';
 import 'package:zencare/features/Home/screens/about_us.dart';
@@ -14,6 +16,7 @@ import 'package:zencare/features/Services/screens/WaterPurifierServices.dart';
 import 'package:zencare/features/Services/screens/SalonService.dart';
 import 'package:zencare/features/checkout/shopping_cart.dart';
 import 'package:zencare/features/controller.dart';
+import 'package:zencare/features/policies/delete_account_page.dart';
 import 'package:zencare/features/policies/privacy_policy.dart';
 import 'package:zencare/features/policies/refund_policy.dart';
 import 'package:zencare/features/policies/terms_and_conditions.dart';
@@ -25,6 +28,9 @@ import 'package:zencare/features/orders/order_history_page.dart';
 import 'package:zencare/features/profile/profile_page.dart';
 
 void main() {
+  if (kIsWeb) {
+    setUrlStrategy(HashUrlStrategy());
+  }
   runApp(
     ChangeNotifierProvider(
       create: (context) => CartData(),
@@ -87,6 +93,7 @@ class MyApp extends StatelessWidget {
         '/refund-policy': (context) => RefundPolicy(),
         '/terms-and-conditions': (context) => TermsAndConditions(),
         '/privacy-policy': (context) => PrivacyPolicy(),
+        '/delete-account': (context) => const DeleteAccountPage(),
         '/carpenter-service': (context) => const CarpenterService(),
         '/payment-response': (context) => const PaymentResponsePage(),
         '/partner-registration': (context) => const PartnerRegistrationPage(),
