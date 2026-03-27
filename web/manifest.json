@@ -1,11 +1,11 @@
 {
-    "name": "zencare",
-    "short_name": "zencare",
+    "name": "Zencare — salon & beauty booking",
+    "short_name": "Zencare",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "Your one-stop solution for all home and lifestyle services",
+    "background_color": "#FFFFFF",
+    "theme_color": "#FF5F15",
+    "description": "Book salon and beauty services (hair, makeup, grooming) and home lifestyle services. Not a medical or healthcare app.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

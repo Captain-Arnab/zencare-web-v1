@@ -62,13 +62,13 @@ class AboutSection extends StatelessWidget {
                     ),
                     SizedBox(height: 12),
                     Text(
-                      'Welcome to Zen Care, your one-stop solution for all home and lifestyle services! We are dedicated to making your life easier with our professional and reliable services. Whether it’s keeping your home cool with AC servicing, ensuring your appliances run smoothly with refrigerator repair, or giving your space a fresh and hygienic look with home cleaning—we''ve got you covered!',
+                      'Welcome to Zen Care, your platform for salon and beauty bookings and other home lifestyle services! We are dedicated to making your life easier with professional, reliable providers. Whether it’s keeping your home cool with AC servicing, ensuring your appliances run smoothly with refrigerator repair, or giving your space a fresh look with home cleaning—we''ve got you covered!',
                       textAlign: TextAlign.justify,
                       style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.grey[600]),
                     ),
                     SizedBox(height: 12),
                     Text(
-                      'Looking for self-care? Our expert salon services bring the best grooming experience right to your doorstep. Worried about pests? Our pest control solutions ensure a safe and healthy living environment. Need a carpenter for home improvements? We provide skilled professionals for every fix and renovation. And if you''re dreaming of a beautifully designed home, our interior design services turn your vision into reality.',
+                      'Looking for beauty and grooming? Our expert salon partners bring hair, makeup, and styling services to your doorstep. Worried about pests? Our pest control solutions help keep your home comfortable. Need a carpenter for home improvements? We connect you with skilled professionals for fixes and renovations. And if you''re dreaming of a beautifully designed home, our interior design services turn your vision into reality.',
                       textAlign: TextAlign.justify,
                       style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.grey[600]),
                     ),

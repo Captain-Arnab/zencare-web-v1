@@ -33,7 +33,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace "com.zencareservice.app"
     compileSdk = 36
-    ndkVersion flutter.ndkVersion
+    // Match Flutter plugins; NDK 27+ aligns better with current Play 16 KB guidance than older defaults.
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

@@ -195,7 +195,7 @@ class _SalonServiceState extends State<SalonService> {
           title: 'Benefits',
           content: '1. Reduces wrinkles and fine lines.\n'
               '2. Improves skin elasticity.\n'
-              '3. Helps treat sun damage by reducing melanin levels.\n'
+              '3. Helps reduce the look of sun-affected skin by addressing excess melanin appearance.\n'
               '4. Soothes and nourishes the skin with almond oil.\n'),
       ExpansionTileData(
         title: 'Products Used',
@@ -233,7 +233,7 @@ class _SalonServiceState extends State<SalonService> {
               '6. Serum: Skin serum is massaged into the skin with an ultrasonic spatula.\n'
               '7. Cream: Nourishing cream is massaged on the face, neck, and lower neckline.\n'
               '8. Mask Application: A mask is applied. While drying, a shoulder and leg massage is given.\n'
-              '9. SPF Application: SPF 30 is applied to seal in the benefits of the treatment.'),
+              '9. SPF Application: SPF 30 is applied to finish the facial and support daily sun protection.'),
       ExpansionTileData(
           title: 'Benefits',
           content: '1. Illuminates and unveils a vibrant complexion.\n'
@@ -355,7 +355,7 @@ class _SalonServiceState extends State<SalonService> {
         title: 'Precautions',
         content:
         '1. Avoid for 15 days after laser hair removal.\n'
-            '2. Avoid if you\'ve undergone chemical peel treatments.\n',
+            '2. Avoid if you\'ve recently had a strong salon peel service on the area.\n',
       ),
       ExpansionTileData(
         title: 'Recommended For',
@@ -573,7 +573,7 @@ class _SalonServiceState extends State<SalonService> {
           title: 'Benefits',
           content:
           '1. Achieve a polished and well-groomed appearance\n'
-              '2. Maintain your beard\'s health and style\n'
+              '2. Keep your beard looking neat and well styled\n'
               '3. Boost your confidence with a fresh, tailored look\n'),
       ExpansionTileData(
         title: 'Duration',
@@ -591,7 +591,7 @@ class _SalonServiceState extends State<SalonService> {
       ExpansionTileData(
         title: 'What to Expect',
         content:
-        'Experience a soothing and refreshing treatment that combines cleansing, exfoliation, and nourishing masks to unveil a brighter complexion.',
+        'Enjoy a soothing, refreshing facial-style session with cleansing, exfoliation, and nourishing masks for a brighter-looking complexion.',
       ),
       ExpansionTileData(
         title: 'Duration',
@@ -600,7 +600,7 @@ class _SalonServiceState extends State<SalonService> {
       ExpansionTileData(
         title: 'Aftercare',
         content:
-        'Hydrate and protect your skin with sunscreen to maintain results and prevent further pigmentation.',
+        'Hydrate and protect your skin with sunscreen to help maintain your glow and an even-looking tone.',
       ),
       ExpansionTileData(
         title: 'Ideal For',
@@ -615,9 +615,9 @@ class _SalonServiceState extends State<SalonService> {
         'Deep cleansing and gentle exfoliation to remove impurities, leaving your skin refreshed and revitalized.',
       ),
       ExpansionTileData(
-        title: 'Mask & Treatment',
+        title: 'Mask & finishing care',
         content:
-        'Nourishing mask and specialized treatments tailored for smooth and radiant skin on your face and neck.',
+        'Nourishing mask and finishing salon steps tailored for smooth, radiant-looking skin on your face and neck.',
       ),
       ExpansionTileData(
         title: 'Benefits',
@@ -709,7 +709,7 @@ class _SalonServiceState extends State<SalonService> {
           packageDescription:
           'Revitalize your skin with our skin-brightening facial, designed to enhance your natural glow and boost radiance.',
           packageHighlight:
-          'Transform your skin with rejuvenating treatment for enhanced radiance and even skin tone.',
+          'Refresh your look with a rejuvenating facial for enhanced radiance and a more even skin tone.',
           packagePrice: '₹299/-',
         ),
       ),
@@ -726,7 +726,7 @@ class _SalonServiceState extends State<SalonService> {
           packageDescription:
           'Rejuvenate your skin with our Coffee Skin Hydrating Cleanup, for a radiant, refreshed, and deeply nourished glow.',
           packageHighlight:
-          'Deep cleansing and exfoliation with nourishing mask treatment.',
+          'Deep cleansing and exfoliation with a nourishing mask step.',
           packagePrice: '₹249/-',
         ),
       ),
@@ -741,7 +741,7 @@ class _SalonServiceState extends State<SalonService> {
           expansionData: hairColorData,
           packageTitle: 'Hair Color',
           packageDescription:
-          'Get personalized color advice, premium products, skilled application, and aftercare tips for vibrant, healthy hair color.',
+          'Get personalized color advice, premium products, skilled application, and aftercare tips for vibrant, great-looking hair color.',
           packageHighlight:
           'Transform your look with professional hair color services.',
           packagePrice: '₹499/-',

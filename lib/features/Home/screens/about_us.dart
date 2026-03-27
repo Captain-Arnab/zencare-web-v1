@@ -45,13 +45,13 @@ Widget _buildAboutText(BuildContext context) {
   return Column(
     children: [
       Text(
-        'Welcome to Zen Care, your one-stop solution for all home and lifestyle services! We are dedicated to making your life easier with our professional and reliable services. Whether it\'s keeping your home cool with AC servicing, ensuring your appliances run smoothly with refrigerator repair, or giving your space a fresh and hygienic look with home cleaning—we\'ve got you covered!',
+        'Welcome to Zen Care, your platform for salon and beauty bookings and other home lifestyle services! We are dedicated to making your life easier with professional, reliable providers. Whether it\'s keeping your home cool with AC servicing, ensuring your appliances run smoothly with refrigerator repair, or giving your space a fresh look with home cleaning—we\'ve got you covered!',
         textAlign: TextAlign.justify,
         style: textStyle,
       ),
       SizedBox(height: 16),
       Text(
-        'Looking for self-care? Our expert salon services bring the best grooming experience right to your doorstep. Worried about pests? Our pest control solutions ensure a safe and healthy living environment. Need a carpenter for home improvements? We provide skilled professionals for every fix and renovation.',
+        'Looking for beauty and grooming? Our expert salon partners bring hair, makeup, and styling services to your doorstep. Worried about pests? Our pest control solutions help keep your home comfortable. Need a carpenter for home improvements? We connect you with skilled professionals for fixes and renovations.',
         textAlign: TextAlign.justify,
         style: textStyle,
       ),
